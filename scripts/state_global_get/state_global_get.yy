@@ -1,0 +1,13 @@
+{
+  "$GMScript":"",
+  "%Name":"state_global_get",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"state_global_get",
+  "parent":{
+    "name":"SSGM",
+    "path":"folders/SSGM.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

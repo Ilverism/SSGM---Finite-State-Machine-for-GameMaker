@@ -1,0 +1,13 @@
+{
+  "$GMScript":"",
+  "%Name":"State",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"State",
+  "parent":{
+    "name":"SSGM",
+    "path":"folders/SSGM.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
