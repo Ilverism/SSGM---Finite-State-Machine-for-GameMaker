@@ -30,7 +30,7 @@ function State(_name, definitionBehavior=STATE_DEFINITION_BEHAVIOR.GlobalConstan
 		specified State, whereas the 'Out' and 'In' methods will always be
 		triggered upon exit/entry.
 		
-		A global mapping of all States is kept via the gStates variable,
+		A global mapping of all States is kept via the global.gStates variable,
 		primarilly for ease of use in transitioning to other States via
 		their supplied name instead of their variables. This behavior
 		can be overwritten when creating a new State, allowing the instances
@@ -40,18 +40,43 @@ function State(_name, definitionBehavior=STATE_DEFINITION_BEHAVIOR.GlobalConstan
 		Additionally, there is also a 'state_global_load' function that allows you
 		to fetch existing States from the global set and initialize them, but this
 		is not required to use.
-	
-	
-		CHANGELOG (... -> v0.1.0):
-		- Created SSGM
-		- Demo coming soon!
 		
+		To ensure that an instance of a State exists, they can be pre-created
+		using the included 'asset_tags_init' function which creates instances
+		based on tags applied in the GameMaker Asset Browser. For States that
+		you only want one instance of, make sure you include the 'Singleton' tag.
+		If you want to load in different types of States in batches, give them
+		different tags such as "Asset_Gamestate" or "Asset_Playerstate" and supply
+		these strings to the 'asset_tags_init' function at the start of the game
+		(or at least before you need to use an instance of those States).
+		
+		Inheritence can be used to group the logic of certain States. For example,
+		the SSGM demo has 'State_Playerstate_Alive' and 'State_Playerstate_Dead'
+		constructors which both inherit from the 'State_Playerstate' constructor.
+		The latter is never actually initialized as a State instance, but has logic
+		for updating the 'state' variable of the Player instance when transitioning
+		between being alive/dead. To assist with calling parent methods (for both
+		events and transitions), States are equipped with a 'super' method, though
+		calling it each frame may be noticeably more performance intensive than
+		manually caching the parent's method.
+		
+	
+		CHANGELOG (... -> v0.2.0):
+		- Created WIP demo
+		- Imported asset tags initialization
+		- Extended documentation to explain asset tags
+		- Fixed typo in '__states_init__'
+		- Removed an extraneous call to removed 'pass' function from '__out__'
+		- Re-added initializations 'transitionsTo' and 'transitionsFrom'
+		- Replaced calls to removed 'is_defined' function with negations of 'is_undefined'
+		- Added 'super' helper method
+
 		
 		SSGM uses GMEdit for formatting.
 		
 		Code by Ilverism :) 					https://github.com/Ilverism/
-		v0.1.0
-		03/30/24
+		v0.2.0
+		03/31/24
 	
 	---------------------------------------------------------------------------------
     */
@@ -71,6 +96,8 @@ function State(_name, definitionBehavior=STATE_DEFINITION_BEHAVIOR.GlobalConstan
 
     //Initialize instance variables
     name = _name;   ///@is {string}
+	transitionsTo = {}		///@is {struct}
+	transitionsFrom = {}	///@is {struct}
     
     //Add this State to the global set if it is not marked as Manual
     if (definitionBehavior != STATE_DEFINITION_BEHAVIOR.Manual) 
@@ -86,7 +113,22 @@ function State(_name, definitionBehavior=STATE_DEFINITION_BEHAVIOR.GlobalConstan
         return name;
         
         }
-        
+	
+	///@static
+	///@param {string} eventName
+	///@returns {any?}
+	static super = function(eventName) {
+		
+		/*
+			Attempts to call a parent's method event with the
+			supplied event name, e.g. 'super("draw_gui")'.
+		*/
+
+		var eventMethod = static_get(static_get(self))[$ eventName];
+		return eventMethod();
+		
+		}
+	
 	#endregion
         
     
@@ -157,7 +199,7 @@ function State(_name, definitionBehavior=STATE_DEFINITION_BEHAVIOR.GlobalConstan
     ///@static
     static __out__ = function() {
         
-        pass();
+        // ...
         
         }
     
@@ -167,7 +209,7 @@ function State(_name, definitionBehavior=STATE_DEFINITION_BEHAVIOR.GlobalConstan
         
         //Perform specific transititon method for target state (if it exists)
         var transitionMethod = __fetch_transition_to__(targetState);
-        if (is_defined(transitionMethod))
+        if (!is_undefined(transitionMethod))
             transitionMethod();
         
         //Pass off to next State
@@ -193,7 +235,7 @@ function State(_name, definitionBehavior=STATE_DEFINITION_BEHAVIOR.GlobalConstan
         
         //Perform specific transititon method for previous state (if it exists)
         var transitionMethod = __fetch_transition_from__(previousState);
-        if (is_defined(transitionMethod))
+        if (!is_undefined(transitionMethod))
             transitionMethod();
         
         }
@@ -281,7 +323,7 @@ function State(_name, definitionBehavior=STATE_DEFINITION_BEHAVIOR.GlobalConstan
 	///@static
 	static __states_init__ = function() {
 	
-		static initalized = false;
+		static initialized = false;
 		
 		//Already initialized
 		if (initialized)
@@ -290,8 +332,7 @@ function State(_name, definitionBehavior=STATE_DEFINITION_BEHAVIOR.GlobalConstan
 		initialized = true;
 		
 		
-		globalvar gStates;	///@is {struct}
-		gStates = {};
+		global.gStates = {}; ///@is {struct}
 		
 		}
 	

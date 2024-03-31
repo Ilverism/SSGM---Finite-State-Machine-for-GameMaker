@@ -3,7 +3,7 @@
 ///@returns {State}
 function state_global_get(stateName, allowFailure=false) {
 
-	var stateOut/*:State*/ = gStates[$ stateName];
+	var stateOut/*:State*/ = global.gStates[$ stateName];
 	
 	//Target State does not exist with the supplied name
 	if (is_undefined(stateOut)) {
